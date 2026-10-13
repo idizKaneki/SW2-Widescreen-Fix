@@ -3,8 +3,6 @@
  * Juste avant chaque dessin 2D, on resserre les X vers le centre (facteur (4/3)/ratio) :
  * les elements retrouvent leurs proportions et restent groupes au centre.
  * Exceptions : quads couvrant toute la largeur (fonds, fondus, bandeaux) et rendus hors ecran. */
-__declspec(dllimport) HANDLE WINAPI LoadLibraryA(const char*);
-__declspec(dllimport) void* WINAPI GetProcAddress(HANDLE, const char*);
 
 #define VTBL(o) (*(void***)(o))
 static float h_W, h_H, h_s, h_cx;           /* ecran, facteur, centre */
@@ -13,7 +11,6 @@ static void *h_vb; static u32 h_vboff, h_stride;
 static u32 h_vp[4];
 static int h_count;
 static u32 h_az[256]; static float h_ax[256]; static int h_na;
-__declspec(dllimport) short WINAPI GetAsyncKeyState(int);
 static char h_dpath[270]; static char *h_dbuf; static int h_dlen, h_dcap, h_dprev, h_ndump, h_draw;
 static char h_dmem[4 << 20];
 static void dl(const char *s) { while (*s && h_dlen < (int)sizeof h_dmem - 64) h_dmem[h_dlen++] = *s++; }
@@ -54,7 +51,7 @@ static int h_self;                                                    /* nos pro
 static LockF origlock(void *vb) { int i; void **vt = VTBL(vb); for (i = 0; i < h_nvt; i++) if (h_vts[i] == vt) return h_olock[i]; return (LockF)vt[11]; }
 
 static void vhook(void **vt, int idx, void *fn, void **orig) {
-    u32 old; if (vt[idx] == fn) return;
+    DWORD old; if (vt[idx] == fn) return;
     VirtualProtect(&vt[idx], 4, 0x40, &old); *orig = vt[idx]; vt[idx] = fn; VirtualProtect(&vt[idx], 4, old, &old);
 }
 

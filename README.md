@@ -18,25 +18,24 @@ patches the game **in memory only** (no game file is modified):
 | `sw2ws.c` | Plugin entry point: waits for the protected `sw2.exe` to decrypt in memory, then patches the resolution and camera code |
 | `hud.c` | HUD/menu correction (included by `sw2ws.c`) |
 | `SW2Widescreen.ini` | Settings (resolution, camera fix, HUD fix) |
+| `version.rc` | Version information (name, author, version) |
+| `build.bat` / `build.sh` | Build scripts |
 
-The code uses no C runtime: only `kernel32.dll` and `user32.dll` (and `d3d9.dll`, loaded at runtime).
+Built with the standard MinGW C runtime; Windows APIs used: `kernel32.dll`, `user32.dll` (and `d3d9.dll`, loaded at runtime).
 
 ## Build
 
-32-bit Windows DLL, renamed `.asi`.
-
-**MinGW-w64 (e.g. MSYS2 "MINGW32" shell):**
-
-```
-i686-w64-mingw32-gcc -O2 -shared -nostdlib -fno-builtin -ffreestanding -o SW2Widescreen.asi sw2ws.c -Wl,-e,_DllMain@12 -lkernel32 -luser32
-```
-
-**LLVM / clang (tested):**
+32-bit Windows DLL, renamed `.asi`. Needs [Zig](https://ziglang.org) (tested) or MinGW-w64 32-bit (e.g. MSYS2 "MINGW32" shell).
+Run `build.bat` (Windows) or `./build.sh` (Linux / macOS). Zig command used for the release:
 
 ```
-clang --target=i686-w64-windows-gnu -O2 -fno-builtin -ffreestanding -c sw2ws.c -o sw2ws.o
-ld.lld -m i386pe --shared -e _DllMain@12 --subsystem windows -o SW2Widescreen.asi sw2ws.o -lkernel32 -luser32
+zig cc -target x86-windows-gnu -O2 -s -shared -o SW2Widescreen.asi sw2ws.c version.rc -lkernel32 -luser32 -Wl,--subsystem,windows
 ```
+
+## Changelog
+
+- 1.0.1: same features; built with the standard C runtime and version information (fewer antivirus false positives).
+- 1.0: first release.
 
 ## Install
 

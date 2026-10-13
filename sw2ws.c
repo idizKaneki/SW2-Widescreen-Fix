@@ -5,25 +5,9 @@
  * - corrige le ratio de la camera 3D (plus d'etirement, champ de vision elargi)
  * - recentre le HUD et les menus 2D sans etirement (hud.c)
  */
-typedef unsigned char u8; typedef unsigned int u32; typedef void *HANDLE;
-#define WINAPI __stdcall
-__declspec(dllimport) HANDLE WINAPI CreateThread(void*, u32, u32 (WINAPI*)(void*), void*, u32, u32*);
-__declspec(dllimport) void WINAPI Sleep(u32);
-__declspec(dllimport) int WINAPI VirtualProtect(void*, u32, u32, u32*);
-__declspec(dllimport) HANDLE WINAPI GetModuleHandleA(const char*);
-__declspec(dllimport) u32 WINAPI GetModuleFileNameA(HANDLE, char*, u32);
-__declspec(dllimport) u32 WINAPI GetPrivateProfileIntA(const char*, const char*, int, const char*);
-__declspec(dllimport) HANDLE WINAPI CreateFileA(const char*, u32, u32, void*, u32, u32, HANDLE);
-__declspec(dllimport) int WINAPI WriteFile(HANDLE, const void*, u32, u32*, void*);
-__declspec(dllimport) int WINAPI CloseHandle(HANDLE);
-__declspec(dllimport) int WINAPI FlushInstructionCache(HANDLE, const void*, u32);
-__declspec(dllimport) HANDLE WINAPI GetCurrentProcess(void);
-__declspec(dllimport) int WINAPI GetSystemMetrics(int);
-__declspec(dllimport) int WINAPI SetThreadPriority(HANDLE, int);
-__declspec(dllimport) HANDLE WINAPI GetCurrentThread(void);
-__declspec(dllimport) u32 WINAPI GetTickCount(void);
-
-int _fltused = 0;
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+typedef unsigned char u8; typedef unsigned int u32;
 static HANDLE g_self;
 static char g_ini[260], g_logp[260];
 static char g_log[4096]; static int g_loglen;
@@ -36,7 +20,7 @@ static void lg(const char *s) { while (*s && g_loglen < (int)sizeof g_log - 1) g
 static void lgn(int v) { char b[12]; int i = 11; b[i] = 0; if (v == 0) b[--i] = '0'; while (v > 0) { b[--i] = '0' + v % 10; v /= 10; } lg(b + i); }
 static void lghex(u32 v) { char b[11]; int i; b[0]='0'; b[1]='x'; for (i = 0; i < 8; i++) b[2+i] = "0123456789ABCDEF"[(v >> (28 - 4*i)) & 15]; b[10]=0; lg(b); }
 static void flushlog(void) {
-    u32 w; HANDLE h = CreateFileA(g_logp, 0x40000000, 1, 0, 2, 0x80, 0);
+    DWORD w; HANDLE h = CreateFileA(g_logp, 0x40000000, 1, 0, 2, 0x80, 0);
     if (h != (HANDLE)-1) { WriteFile(h, g_log, g_loglen, &w, 0); CloseHandle(h); }
 }
 
@@ -50,7 +34,7 @@ static u8 *find(u8 *p, u32 n, const short *pat, int m) {
     return 0;
 }
 static void put(u8 *dst, const u8 *src, int n) {
-    u32 old; int i;
+    DWORD old; int i;
     VirtualProtect(dst, n, 0x40, &old);
     for (i = 0; i < n; i++) dst[i] = src[i];
     VirtualProtect(dst, n, old, &old);
@@ -66,7 +50,7 @@ static const short P_AR[] = {0xD9,0x01,0xD8,0x71,0x04,0xEB,0x06,0xD9,0x05};     
 /* force la fonction entiere a renvoyer v, quel que soit le reglage choisi dans le jeu */
 static void forcefunc(u8 *f, int v) { u8 c[6]; c[0] = 0xB8; c[1] = (u8)v; c[2] = (u8)(v>>8); c[3] = (u8)(v>>16); c[4] = (u8)(v>>24); c[5] = 0xC3; put(f, c, 6); }
 
-static u32 WINAPI worker(void *arg) {
+static DWORD WINAPI worker(LPVOID arg) {
     u8 *base = (u8*)GetModuleHandleA(0);
     u32 pe = *(u32*)(base + 0x3C);
     u8 *sec = base + pe + 24 + *(unsigned short*)(base + pe + 20);
@@ -77,7 +61,7 @@ static u32 WINAPI worker(void *arg) {
     int fixcam = (int)GetPrivateProfileIntA("Settings", "FixCamera", 1, g_ini);
     int t; u8 *pw = 0, *ph = 0, *par = 0;
     (void)arg;
-    lg("SW2Widescreen 1.5 final\r\n");
+    lg("SW2Widescreen 1.0.1\r\n");
     if (w <= 0 || h <= 0) {
         w = GetSystemMetrics(0); h = GetSystemMetrics(1);
         lg("Ecran detecte : "); lgn(w); lg("x"); lgn(h); lg("\r\n");
@@ -132,9 +116,10 @@ static u32 WINAPI worker(void *arg) {
     return 0;
 }
 
-int WINAPI DllMain(HANDLE inst, u32 reason, void *res) {
+BOOL WINAPI DllMain(HINSTANCE inst, DWORD reason, LPVOID res) {
     (void)res;
-    if (reason == 1) {
+    if (reason == DLL_PROCESS_ATTACH) {
+        DisableThreadLibraryCalls(inst);
         int i, n;
         g_self = inst;
         n = (int)GetModuleFileNameA(inst, g_ini, 250);
