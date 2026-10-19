@@ -8,8 +8,9 @@ The PC port of Samurai Warriors 2 only offers 4:3 resolutions. This plugin, load
 patches the game **in memory only** (no game file is modified):
 
 - replaces the resolution functions so the game runs at the desktop resolution (or the one set in `SW2Widescreen.ini`);
-- fixes the 3D camera aspect ratio (Hor+, no stretching);
-- re-centers the 2D HUD and menus with correct proportions (`hud.c`, Direct3D 9 hooks).
+- keeps the 3D image unstretched;
+- re-centers the 2D HUD and menus with correct proportions, sends menu side pieces to the screen edges (`hud.c`, Direct3D 9 hooks);
+- keeps sound playing when the game is in the background (Alt+Tab), so no dialogue is lost.
 
 ## Files
 
@@ -17,11 +18,11 @@ patches the game **in memory only** (no game file is modified):
 |---|---|
 | `sw2ws.c` | Plugin entry point: waits for the protected `sw2.exe` to decrypt in memory, then patches the resolution and camera code |
 | `hud.c` | HUD/menu correction (included by `sw2ws.c`) |
-| `SW2Widescreen.ini` | Settings (resolution, camera fix, HUD fix) |
+| `SW2Widescreen.ini` | Settings (resolution, HUD fix, background audio) |
 | `version.rc` | Version information (name, author, version) |
 | `build.bat` / `build.sh` | Build scripts |
 
-Built with the standard MinGW C runtime; Windows APIs used: `kernel32.dll`, `user32.dll` (and `d3d9.dll`, loaded at runtime).
+Built with the standard MinGW C runtime; Windows APIs used: `kernel32.dll`, `user32.dll` (and `d3d9.dll`, `dsound.dll`, loaded at runtime).
 
 ## Build
 
@@ -33,6 +34,11 @@ zig cc -target x86-windows-gnu -O2 -s -shared -o SW2Widescreen.asi sw2ws.c versi
 ```
 
 ## Changelog
+
+- 2.0: compatible with HD Textures 2.0.3 (the game's own CreateDevice call is redirected, IDirect3D9 is never hooked);
+  health bars and names in place; menu screens adapted (side pieces to the screen edges, full-screen backgrounds kept);
+  fixed timer on the battle select screen, cut Select map, scrolling EXP background, stretched story screens;
+  background audio after Alt+Tab (`DSBCAPS_GLOBALFOCUS`). `Debug=1` in the ini enables F7/F8/F9 test keys.
 
 - 1.0.1: same features; built with the standard C runtime and version information (fewer antivirus false positives).
 - 1.0: first release.

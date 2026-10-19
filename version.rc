@@ -1,7 +1,7 @@
 #include <winver.h>
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,1,0
- PRODUCTVERSION 1,0,1,0
+ FILEVERSION 2,0,0,0
+ PRODUCTVERSION 2,0,0,0
  FILEFLAGSMASK 0x3fL
  FILEFLAGS 0x0L
  FILEOS VOS_NT_WINDOWS32
@@ -14,12 +14,12 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "idiz117"
       VALUE "FileDescription", "Samurai Warriors 2 Widescreen Fix 16:9 / 21:9 (ASI plugin)"
-      VALUE "FileVersion", "1.0.1.0"
+      VALUE "FileVersion", "2.0.0.0"
       VALUE "InternalName", "SW2Widescreen"
       VALUE "LegalCopyright", "Copyright (c) 2026 idiz117 - MIT License"
       VALUE "OriginalFilename", "SW2Widescreen.asi"
       VALUE "ProductName", "SW2 Widescreen Fix"
-      VALUE "ProductVersion", "1.0.1.0"
+      VALUE "ProductVersion", "2.0.0.0"
       VALUE "Comments", "Source: https://github.com/idizKaneki/SW2-Widescreen-Fix"
     END
   END
